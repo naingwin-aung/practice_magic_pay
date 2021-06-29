@@ -1,0 +1,300 @@
+// Fonts
+@import url('https://fonts.googleapis.com/css2?family=Poppins&display=swap');
+
+// Variables
+@import 'variables';
+
+$primary : #5842E3;
+
+
+// Bootstrap
+@import '~bootstrap/scss/bootstrap';
+@import '~sweetalert2/src/sweetalert2.scss';
+
+
+body {
+  background-color: #ededf5;
+  font-size: 15px;
+}
+
+.login__container {
+    height: 100vh;
+}
+
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
+.swal2-popup {
+  width: 22em !important;
+}
+
+.card {
+  border-radius: 10px;
+}
+
+.btn:hover {
+    background-color: white;
+    color: $primary;
+}
+
+.profile img {
+  border-radius: 100%;
+  padding: 4px;
+  border: 1px solid #ddd;
+  background-color: white;
+}
+
+a {
+  &:hover {
+    text-decoration: none;
+  }
+}
+
+.back-btn {
+  font-size: 20px;
+}
+
+/* Auth Form*/
+.auth__form {
+  border: none;
+  .auth__btn__theme {
+    padding: 0.4em 2.5em;
+    border: 2px solid $primary;
+    background-color: $primary;
+    color: white;
+    border-radius: 0.1em;
+    transition: all 0.3s ease-in;
+  
+    &:hover {
+      background-color: white;
+      color: $primary;
+    }
+  }
+
+  .auth__password__field {
+    position: relative;
+
+    i {
+      position: absolute;
+      right: 5%;
+      top: 63%;
+      cursor: pointer;
+      color: #ccc;
+  
+      // &.active::before {
+      //   content: '\f070';
+      //   color: #333;
+      // }
+  
+      &.active {
+        color: #333;
+      }
+    }
+  }
+
+}
+ /*-----Home--------*/
+.home {
+  .shortcut__box{
+    img {
+      width: 28px;
+      height: 28px;
+    }
+  }
+
+  a {
+    color: #212529;
+  }
+
+  .function__box{
+    img {
+      width: 28px;
+      height: 28px;
+    }
+  }
+}
+
+
+/* Header Menu*/
+.header__menu {
+  background-color: #fff;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 12px 0;
+  z-index: 999;
+
+  i {
+    font-size: 18px;
+    margin-top: 2px;
+  }
+
+  .bell__icon {
+    margin-top: 6px;
+  }
+
+  h3 {
+    font-size: 20px;
+    font-weight: bold;
+    margin: 0;
+  }
+
+  a {
+    text-decoration: none;
+    color: #333;
+    transition: all 0.3s ease-in;
+
+    &:hover {
+      color: $primary;
+    }
+  }
+}
+
+/* Bottom Menu*/
+.bottom__menu {
+  background-color: #fff;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 999;
+
+  i {
+    font-size: 18px;
+    margin-top: 12px;
+  }
+
+  p {
+    font-size: 12px;
+    margin-bottom: 12px;
+  }
+
+  a {
+    text-decoration: none;
+    color: #333;
+    display: inline-block;
+    transition: all 0.3s ease-in;
+
+    &:hover {
+      color: $primary;
+    }
+  }
+}
+
+/*-------------Main Content-----------*/
+.content {
+  margin-top: 75px;
+  margin-bottom: 75px;
+}
+
+/*----Account----*/
+.account {
+  a {
+    color: #212529;
+    
+    &:hover {
+      color: $primary;
+    }
+  }
+}
+
+/*--------Update Password-------*/
+.update__password {
+  img{
+    width: 160px;
+  }
+}
+
+
+
+/*-------Scan Tab-------------*/
+.scan__tab{
+  width: 60px;
+  height: 60px;
+  border-radius: 100%;
+  position: fixed;
+  bottom: 40px;
+  z-index: 1000;
+  right: 0;
+  left: 0;
+  background-color: rgb(236, 236, 236);
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  .inside {
+    background-color: $primary;
+    width: 52px;
+    height: 52px;
+    border-radius: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: glow 3s infinite;
+
+    i{
+      font-size: 18px;
+      color: white;
+    }
+  }
+}
+
+@keyframes glow {
+  0% {
+    box-shadow: 0 0 -10px $primary;
+  }
+  40% {
+    box-shadow: 0 0 15px $primary;
+  }
+  60% {
+    box-shadow: 0 0 15px $primary;
+  }
+  100% {
+    box-shadow: 0 0 -10px $primary;
+  }
+}
+
+/*--------Wallet-------*/
+.wallet {
+  .my__card {
+    p {
+      margin-bottom: 5px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      &:not(:last-child) {
+        color: #ededf5;
+      }
+    }
+    h4 {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: 1px;
+
+      span {
+        font-size: 16px;
+        font-weight: 100;
+      }
+    }
+    h5 {
+      font-size: 18px;
+    }
+  }
+}
+
+/*---------Transaction Detail------*/ 
+.transaction__detail {
+  img {
+    width: 60px;
+  }
+}

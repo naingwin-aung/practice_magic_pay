@@ -1,0 +1,38 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins&display=swap');
+
+body {
+  font-family: 'Poppins', sans-serif !important;
+}
+
+.app-page-title {
+    padding: 10px 30px !important;
+    margin: -30px -30px 0;
+}
+
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
+.action-icon {
+  font-size: 18px;
+}
+
+.action-icon .edit-icon {
+  margin-right: 20px;
+}
+
+.content__width {
+  width: 100% !important;
+}
+
+.table__width {
+  width: 99% !important;
+}
