@@ -242,6 +242,7 @@ class PageController extends Controller
 
     public function receiveQR()
     {
-        return view('frontend.receiveqr');
+        $user = Auth::user();
+        return view('frontend.receiveqr', compact('user'));
     }
 }
