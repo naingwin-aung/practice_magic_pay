@@ -19,12 +19,14 @@
                 </div>
             </div>
             <div class="col-6">
-                <div class="card shadow">
-                    <div class="card-body px-2 py-3 text-center">
-                        <img src="{{asset('/img/qr-code.png')}}" alt="Scan" class="mr-2">
-                        <span>Receive QR</span>
+                <a href="{{route('receiveQR')}}">
+                    <div class="card shadow">
+                        <div class="card-body px-2 py-3 text-center">
+                            <img src="{{asset('/img/qr-code.png')}}" alt="Scan" class="mr-2">
+                            <span>Receive QR</span>
+                        </div>
                     </div>
-                </div>
+                </a>
             </div>
         </div>
 
@@ -38,7 +40,7 @@
                 </a>
                 <hr>
     
-                <a href="#">
+                <a href="{{route('wallet')}}">
                     <div class="d-flex justify-content-between">
                         <span><img src="{{asset('img/wallet.png')}}" alt="Transfer" class="mr-3">Wallet</span>
                         <span class="mr-3"><i class="fas fa-angle-right"></i></span>

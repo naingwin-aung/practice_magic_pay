@@ -72,7 +72,7 @@ class PageController extends Controller
         if($request->phone == Auth::user()->phone) {
             return response()->json([
                 'status' => 'fail',
-                'message' => 'Don\'t transfer your account!'
+                'message' => 'Doesn\'t transfer your account!'
             ]);
         }
 
@@ -91,19 +91,26 @@ class PageController extends Controller
 
     public function transferConfirm(ConfirmTransferRequest $request)
     {
+        $hash_value2 = hash_hmac('sha256', $request->phone.$request->amount.$request->description , 'magicpay123!@#');  
+
+        if($request->hash_value !== $hash_value2) {
+            return redirect()->route('transfer')->withErrors(['amount' => 'The given data isn\'t be secure!'])->withInput();
+        }
+
         $from_account = Auth::user();
+        
+        if($from_account->wallet->amount < $request->amount) {
+            return back()->withErrors(['fail' => '​ငွေမလုံလောက်ပါ။'])->withInput();
+        }
 
         $to_account = User::where('phone', $request->to_phone)->first();
 
-        if($to_account && $to_account->phone != Auth::user()->phone && $from_account->wallet) {
+        if($to_account && $to_account->phone != Auth::user()->phone) {
             $amount = $request->amount;
             $description = $request->description;
+            $hash_value = $request->hash_value;
 
-            if($from_account->wallet->amount < $amount) {
-                return back()->withErrors(['fail' => 'Not Enough money'])->withInput();
-            }
-            
-            return view('frontend.transfer_confirm', compact('from_account', 'to_account', 'amount', 'description'));
+            return view('frontend.transfer_confirm', compact('hash_value','from_account', 'to_account', 'amount', 'description'));
         }
 
         return back()->withErrors(['fail' => 'Transfer account is invalid'])->withInput();
@@ -112,11 +119,17 @@ class PageController extends Controller
 
     public function transferComplete(ConfirmTransferRequest $request)
     {
-        if($request->amount < 1000) {
-            return back()->withErrors(['fail' => 'The amount must be at least 1000 MMK'])->withInput();
+        $hash_value2 = hash_hmac('sha256', $request->phone.$request->amount.$request->description , 'magicpay123!@#');
+
+        if($request->hash_value !== $hash_value2) {
+            return redirect()->route('transfer')->withErrors(['amount' => 'The given data isn\'t be secure!'])->withInput();
         }
 
         $from_account = Auth::user();
+
+        if($from_account->wallet->amount < $request->amount) {
+            return back()->withErrors(['fail' => '​ငွေမလုံလောက်ပါ။'])->withInput();
+        }
 
         $to_account = User::where('phone', $request->to_phone)->first();
 
@@ -193,10 +206,20 @@ class PageController extends Controller
         ]);
     }
 
-    public function transaction()
+    public function transaction(Request $request)
     {
         $user = Auth::user();
-        $transactions = Transaction::with('user', 'source')->where('user_id', $user->id)->orderBy('created_at', 'DESC')->paginate(5);
+        $transactions = Transaction::with('user', 'source')->where('user_id', $user->id)->orderBy('created_at', 'DESC');
+
+        if($request->type) {
+            $transactions = $transactions->where('type', $request->type);
+        }
+
+        if($request->date) {
+            $transactions = $transactions->whereDate('created_at', $request->date);
+        }
+
+        $transactions = $transactions->paginate(5);
         return view('frontend.transaction', compact('transactions'));
     }
 
@@ -205,5 +228,20 @@ class PageController extends Controller
        $user = Auth::user();
        $transaction = Transaction::with('user', 'source')->where('user_id', $user->id)->where('trx_id', $trx->trx_id)->first();
        return view('frontend.transaction_detail', compact('transaction'));
+    }
+
+    public function transferHash(Request $request)
+    {
+        $hash_value = hash_hmac('sha256', $request->phone.$request->amount.$request->description , 'magicpay123!@#'); 
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $hash_value
+        ]);
+    }
+
+    public function receiveQR()
+    {
+        return view('frontend.receiveqr');
     }
 }

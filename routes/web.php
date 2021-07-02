@@ -29,4 +29,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/to-account-verfiy', [PageController::class, 'toAccountVerify']);
     Route::get('/password-check', [PageController::class, 'passwordCheck']);
+    Route::get('/transfer-hash', [PageController::class , 'transferHash']);
+
+    Route::get('/receive-qr', [PageController::class, 'receiveQR'])->name('receiveQR');
 });

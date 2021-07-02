@@ -41,7 +41,7 @@
                     <hr>
                 <div class="d-flex justify-content-between">
                     <p class="mb-0 text-muted">Date and Time : </p>
-                    <p class="mb-0">{{$transaction->created_at->format('H:m:i')}} -{{$transaction->created_at->toFormattedDateString()}}</p>
+                    <p class="mb-0">{{$transaction->created_at->format('H:i:s')}} -{{$transaction->created_at->toFormattedDateString()}}</p>
                 </div>
                     <hr>
                 <div class="d-flex justify-content-between mb-0">
