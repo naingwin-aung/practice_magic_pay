@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Hash;
 use App\Http\Requests\StoreUpdatePassword;
 use SebastianBergmann\CodeUnit\FunctionUnit;
 use App\Http\Requests\ConfirmTransferRequest;
+use App\Http\Requests\ScanAndPayRequest;
 
 class PageController extends Controller
 {
@@ -91,7 +92,7 @@ class PageController extends Controller
 
     public function transferConfirm(ConfirmTransferRequest $request)
     {
-        $hash_value2 = hash_hmac('sha256', $request->phone.$request->amount.$request->description , 'magicpay123!@#');  
+        $hash_value2 = hash_hmac('sha256', $request->to_phone.$request->amount.$request->description , 'magicpay123!@#');  
 
         if($request->hash_value !== $hash_value2) {
             return redirect()->route('transfer')->withErrors(['amount' => 'The given data isn\'t be secure!'])->withInput();
@@ -119,7 +120,7 @@ class PageController extends Controller
 
     public function transferComplete(ConfirmTransferRequest $request)
     {
-        $hash_value2 = hash_hmac('sha256', $request->phone.$request->amount.$request->description , 'magicpay123!@#');
+        $hash_value2 = hash_hmac('sha256', $request->to_phone.$request->amount.$request->description , 'magicpay123!@#');
 
         if($request->hash_value !== $hash_value2) {
             return redirect()->route('transfer')->withErrors(['amount' => 'The given data isn\'t be secure!'])->withInput();
@@ -232,7 +233,7 @@ class PageController extends Controller
 
     public function transferHash(Request $request)
     {
-        $hash_value = hash_hmac('sha256', $request->phone.$request->amount.$request->description , 'magicpay123!@#'); 
+        $hash_value = hash_hmac('sha256', $request->to_phone.$request->amount.$request->description , 'magicpay123!@#'); 
 
         return response()->json([
             'status' => 'success',
@@ -244,5 +245,115 @@ class PageController extends Controller
     {
         $user = Auth::user();
         return view('frontend.receiveqr', compact('user'));
+    }
+
+    public function scanAndPay()
+    {
+        return view('frontend.scan_and_pay');
+    }
+
+    public function scanAndPayForm(Request $request)
+    {
+        $user = Auth::user();
+        $to_account = User::where('phone',$request->to_phone)->first();
+        
+        if($to_account && $to_account->phone != $user->phone) {
+            return view('frontend.scan_and_pay_form', compact('user', 'to_account'));
+        }
+
+        return back()->withErrors(['fail' => 'QR code is invalid'])->withInput();
+    }
+
+    public function scanAndPayConfirm(ConfirmTransferRequest $request)
+    { 
+        $hash_value2 = hash_hmac('sha256', $request->to_phone.$request->amount.$request->description , 'magicpay123!@#');
+        
+        if($request->hash_value !== $hash_value2) {
+           return redirect()->route('scan&payform')->withErrors(['fail' => 'The given data is no\'t secure!']);
+        }
+
+        $from_account = Auth::user();
+
+        if($from_account->wallet->amount < $request->amount) {
+            return back()->withErrors(['fail' => '​ငွေမလုံလောက်ပါ။'])->withInput();
+        }
+
+        $to_account = User::where('phone', $request->to_phone)->first();
+
+        if($to_account && $to_account->phone != $from_account->phone) {
+            $amount = $request->amount;
+            $description = $request->description;
+            $hash_value = $request->hash_value;
+
+            return view('frontend.scan_and_pay_confirm', compact('hash_value','from_account', 'to_account', 'amount', 'description'));
+        }
+
+        return back()->withErrors(['fail' => 'Transfer account is invalid'])->withInput();
+    }
+
+    public function scanAndPayComplete(ConfirmTransferRequest $request)
+    {
+        $hash_value2 = hash_hmac('sha256', $request->to_phone.$request->amount.$request->description , 'magicpay123!@#');
+
+        if($request->hash_value !== $hash_value2) {
+            return redirect()->route('transfer')->withErrors(['amount' => 'The given data isn\'t be secure!'])->withInput();
+        }
+
+        $from_account = Auth::user();
+
+        if($from_account->wallet->amount < $request->amount) {
+            return back()->withErrors(['fail' => '​ငွေမလုံလောက်ပါ။'])->withInput();
+        }
+
+        $to_account = User::where('phone', $request->to_phone)->first();
+
+        if($to_account && $to_account->phone != Auth::user()->phone) {
+            $amount = $request->amount;
+            $description = $request->description;
+
+            if(!$from_account->wallet || !$to_account->wallet) {
+                return back()->withErrors(['fail' => 'Something Wrong. The given data is invalid'])->withInput();
+            }
+
+            DB::beginTransaction();
+
+            try {
+                $from_account->wallet->decrement('amount', $amount);
+                $from_account->wallet->update();
+    
+                $to_account->wallet->increment('amount', $amount);
+                $to_account->wallet->update();
+
+                $ref_no = UUIDGenerate::refNumber();
+                
+                $from_account_transaction = new Transaction();
+                $from_account_transaction->ref_no = $ref_no;
+                $from_account_transaction->trx_id = UUIDGenerate::trxId();
+                $from_account_transaction->user_id = $from_account->id;
+                $from_account_transaction->type = 2;
+                $from_account_transaction->amount = $amount;
+                $from_account_transaction->source_id = $to_account->id;
+                $from_account_transaction->description = $description;
+                $from_account_transaction->save();
+
+                $to_account_transaction = new Transaction();
+                $to_account_transaction->ref_no = $ref_no;
+                $to_account_transaction->trx_id = UUIDGenerate::trxId();
+                $to_account_transaction->user_id = $to_account->id;
+                $to_account_transaction->type = 1;
+                $to_account_transaction->amount = $amount;
+                $to_account_transaction->source_id = $from_account->id;
+                $to_account_transaction->description = $description;
+                $to_account_transaction->save();
+
+                DB::commit();
+                return redirect()->route('transaction.detail', $from_account_transaction->id)->with('transfer-success', 'အောင်မြင်ပါသည်။');
+            } catch (\Exception $e) {
+                DB::rollback();
+                return back()->withErrors(['fail' => 'Something Wrong.'])->withInput();
+            }
+        }
+
+        return back()->withErrors(['fail' => 'Transfer account is invalid'])->withInput();
     }
 }

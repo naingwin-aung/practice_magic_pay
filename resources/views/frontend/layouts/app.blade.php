@@ -57,7 +57,7 @@
         </div>
 
         <!---Scan Circle--->
-        <a href="" class="scan__tab">
+        <a href="{{route('receiveQR')}}" class="scan__tab">
             <div class="inside">
                 <i class="fas fa-qrcode"></i>
             </div>
@@ -98,7 +98,7 @@
         </div>
     </div>
 <script src="{{asset('js/app.js')}}"></script>
-<script type="text/javascript" src="{{ asset('vendor/jsvalidation/js/jsvalidation.js')}}"></script>
+<script type="text/javascript" src="{{asset('vendor/jsvalidation/js/jsvalidation.js')}}"></script>
 <script src="{{asset('frontend/js/jscroll.min.js')}}"></script>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>

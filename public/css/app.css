@@ -11356,6 +11356,10 @@ input[type=number] {
   border-radius: 10px;
 }
 
+.btn {
+  transition: all 0.3s ease-in;
+}
+
 .btn:hover {
   background-color: white;
   color: #5842E3;
@@ -11493,7 +11497,7 @@ a:hover {
 
 /*--------Update Password-------*/
 .update__password img {
-  width: 160px;
+  width: 210px;
 }
 
 /*-------Scan Tab-------------*/

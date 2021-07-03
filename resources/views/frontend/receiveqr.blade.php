@@ -7,7 +7,7 @@
             <div class="card-body">
                 <p class="text-center mb-0">QR Scan to Pay me</p>
                 <div class="text-center">
-                    <img src="data:image/png;base64, {!! base64_encode(QrCode::format('png')->color(88, 66, 227)->size(200)->generate($user->phone)) !!} ">
+                    <img src="data:image/png;base64, {!! base64_encode(QrCode::format('png')->size(200)->generate($user->phone)) !!} ">
                 </div>
                 <p class="mb-1 text-center font-weight-bold">
                     {{$user->name}}

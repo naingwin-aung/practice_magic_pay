@@ -11,13 +11,15 @@
 
         <div class="row mb-3 shortcut__box">
             <div class="col-6">
-                <div class="card shadow">
-                    <div class="card-body px-2 py-3 text-center">
-                        <img src="{{asset('/img/qr-code-scan.png')}}" alt="Scan" class="mr-2">
-                        <span>Scan & Pay</span>
+                <a href="{{route("scan&pay")}}">
+                    <div class="card shadow">
+                        <div class="card-body px-2 py-3 text-center">
+                            <img src="{{asset('/img/qr-code-scan.png')}}" alt="Scan" class="mr-2">
+                            <span>Scan & Pay</span>
+                        </div>
                     </div>
+                </a>
                 </div>
-            </div>
             <div class="col-6">
                 <a href="{{route('receiveQR')}}">
                     <div class="card shadow">
