@@ -138,7 +138,7 @@ class PageController extends Controller
             $amount = $request->amount;
             $description = $request->description;
 
-            if(!$from_account->wallet || !$to_account->wallet) {
+            if(!$from_account->wallet && !$to_account->wallet) {
                 return back()->withErrors(['fail' => 'Something Wrong. The given data is invalid'])->withInput();
             }
 

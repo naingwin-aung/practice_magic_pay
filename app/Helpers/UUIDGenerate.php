@@ -23,7 +23,7 @@ class UUIDGenerate
         $number = mt_rand(1000000000000000, 9999999999999999);
 
         if(Transaction::where('ref_no', $number)->exists()) {
-            self::refNumber();
+            return self::refNumber();
         }
 
         return $number;
@@ -34,7 +34,7 @@ class UUIDGenerate
         $number = mt_rand(1000000000000000, 9999999999999999);
 
         if(Transaction::where('trx_id', $number)->exists()) {
-            self::trxId();
+            return self::trxId();
         }
 
         return $number;

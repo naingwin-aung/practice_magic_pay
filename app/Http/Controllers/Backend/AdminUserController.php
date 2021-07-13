@@ -97,12 +97,12 @@ class AdminUserController extends Controller
         ->editColumn('created_at', function($each) {
             return Carbon::parse($each->created_at)->diffForHumans() . " - " .
             Carbon::parse($each->created_at)->toFormattedDateString() . " - " .
-            Carbon::parse($each->created_at)->format('H:m:s');
+            Carbon::parse($each->created_at)->format('H:i:s');
         })
         ->editColumn('updated_at', function($each) {
             return Carbon::parse($each->created_at)->diffForHumans() . " - " .
             Carbon::parse($each->created_at)->toFormattedDateString() . " - " .
-            Carbon::parse($each->created_at)->format('H:m:s');
+            Carbon::parse($each->created_at)->format('H:i:s');
         })
         ->addColumn('action', function($each) {
             if($each->id == auth()->guard('admin')->user()->id) {

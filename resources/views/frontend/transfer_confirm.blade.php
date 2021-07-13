@@ -44,7 +44,7 @@
                             </div>
                         @endif
 
-                        <button class="btn btn-primary float-right confirm-btn">Continue</button>
+                        <button class="btn btn-primary float-right confirm-btn">Confirm</button>
                     </form>
                 </div>
             </div>
