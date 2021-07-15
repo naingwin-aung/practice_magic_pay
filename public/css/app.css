@@ -11352,6 +11352,10 @@ input[type=number] {
   width: 22em !important;
 }
 
+a {
+  color: #212529;
+}
+
 .card {
   border-radius: 10px;
 }
@@ -11378,6 +11382,12 @@ a:hover {
 
 .back-btn {
   font-size: 20px;
+}
+
+.noti_badge {
+  position: absolute;
+  top: -6px;
+  left: 26px;
 }
 
 /* Auth Form*/

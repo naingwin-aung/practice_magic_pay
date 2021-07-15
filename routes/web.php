@@ -1,9 +1,10 @@
 <?php
 
-use App\Http\Controllers\Auth\AdminLoginController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Frontend\PageController;
+use App\Http\Controllers\Auth\AdminLoginController;
+use App\Http\Controllers\Frontend\NotificationController;
 
 //User Auth
 Auth::routes();
@@ -21,7 +22,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/update-password', [PageController::class, 'updatePasswordStore'])->name('update-password.store');
     Route::get('/wallet',[PageController::class, 'wallet'])->name('wallet');
     Route::get('/transaction',[PageController::class, 'transaction'])->name('transaction');
-    Route::get('/transaction/detail/{trx}',[PageController::class, 'transactionDetail'])->name('transaction.detail');
+    Route::get('/transaction/detail/{trx}',[PageController::class, 'transactionDetail'])->name('transaction.detail'); 
 
     Route::get('/transfer',[PageController::class, 'transfer'])->name('transfer');
     Route::get('/transfer/confirm',[PageController::class, 'transferConfirm'])->name('transfer.confirm');
@@ -36,4 +37,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/scan-and-pay-form', [PageController::class, 'scanAndPayForm'])->name('scan&payform');
     Route::get('/scan-and-pay-confirm', [PageController::class, 'scanAndPayConfirm'])->name('scan&pay.confirm');
     Route::post('/scan-and-pay/complete', [PageController::class, 'scanAndPayComplete'])->name('scan&pay.complete');
+
+    Route::get('/notification', [NotificationController::class, 'index'])->name('notification');
+    Route::get('/notification/{id}', [NotificationController::class, 'show'])->name('notification.detail');
 });

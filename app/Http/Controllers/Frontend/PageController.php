@@ -11,9 +11,9 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Requests\StoreUpdatePassword;
-use SebastianBergmann\CodeUnit\FunctionUnit;
+use Illuminate\Support\Facades\Notification;
 use App\Http\Requests\ConfirmTransferRequest;
-use App\Http\Requests\ScanAndPayRequest;
+use App\Notifications\GeneralNotification;
 
 class PageController extends Controller
 {
@@ -49,6 +49,14 @@ class PageController extends Controller
         $user->update([
             'password' => Hash::make($request->new_password),
         ]);
+                
+        $title = 'Change Password';
+        $message = 'Your account password is successfully changed.';
+        $sourceable_id = $user->id; 
+        $sourceable_type = User::class; 
+        $web_link = url('profile');
+
+        Notification::send([$user], new GeneralNotification($title, $message, $sourceable_id, $sourceable_type, $web_link));
 
         return redirect()->route('profile')->with('update-password', 'Successfully Updated Password');
     }

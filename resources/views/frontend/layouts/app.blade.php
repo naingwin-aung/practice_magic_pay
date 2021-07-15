@@ -38,8 +38,11 @@
                             </a>
                         </div>
                         <div class="col-2 bell__icon">
-                            <a href="">
+                            <a href="{{route('notification')}}">
                                 <i class="fas fa-bell"></i>
+                                @if ($unread_noti_count != 0)
+                                    <span class="badge badge-pill badge-danger noti_badge">{{$unread_noti_count}}</span>
+                                @endif
                             </a>
                         </div>
                     </div>
@@ -57,7 +60,7 @@
         </div>
 
         <!---Scan Circle--->
-        <a href="{{route('receiveQR')}}" class="scan__tab">
+        <a href="{{route('scan&pay')}}" class="scan__tab">
             <div class="inside">
                 <i class="fas fa-qrcode"></i>
             </div>
