@@ -10,9 +10,9 @@
                 </div>
                 <div class="text-center">
                     <h6>{{$notification->data['title']}}</h6>
-                    <p class="mb-1 text-muted">{{$notification->data['message']}}</p>
-                    <small class="mb-1">
-                        {{$notification->created_at->toFormattedDateString()}}
+                    <p class="mb-1">{{$notification->data['message']}}</p>
+                    <small class="text-muted">
+                        {{$notification->created_at->format('d/m/Y')}}
                         {{$notification->created_at->format('h:i:s A')}}
                     </small>
                 </div>

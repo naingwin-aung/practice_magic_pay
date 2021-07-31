@@ -2,7 +2,7 @@
 @section('title', "Scan & Pay Confirmation")
 
 @section('content')
-    <div class="scan__pay_confirm">
+    <div class="scan__pay_confirm mt-3">
         <div class="card shadow">
             <div class="card-body">
 

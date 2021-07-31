@@ -3,7 +3,7 @@
 
 @section('content')
 @if (count($transactions))
-    <div class="transaction">
+    <div class="transaction mb-5">
         <div class="card mb-3">
             <div class="card-body py-3">
                 <h6 class="font-weight-bold"><i class="fas fa-filter"></i> Filter</h6>
@@ -13,7 +13,7 @@
                             <div class="input-group-prepend">
                                 <label class="input-group-text p-1">Date</label>
                             </div>
-                            <input type="text" class="form-control date" value="{{ request()->date ?? date('Y-m-d') }}">
+                            <input type="text" class="form-control date" value="{{ request()->date }}" placeholder="All">
                         </div>
                     </div>
                     <div class="col-6 pl-2 pr-1">
@@ -31,7 +31,7 @@
         <h6 class="ml-2 font-weight-bold">Transactions</h6>
         <div class="infinite-scroll">
             @foreach ($transactions as $transaction)
-                <a href="{{route('transaction.detail', $transaction->id)}}">
+                <a href="{{route('transaction.detail', $transaction->trx_id)}}">
                     <div class="card shadow mb-2">
                         <div class="card-body py-3">
                             <div class="d-flex justify-content-between mb-2">
@@ -83,19 +83,30 @@
 
             $('.date').daterangepicker({
                 "singleDatePicker": true,
-                "autoApply": true,
+                "autoApply": false,
+                "autoUpdateInput": false,
                 "locale": {
                     "format" : 'YYYY-MM-DD'
                 },
             }); 
 
             $('.date').on('apply.daterangepicker', function(ev, picker) {
+                $(this).val(picker.startDate.format('YYYY-MM-DD'));
                 let date = $('.date').val();
                 let type = $('.type').val();
 
                 history.pushState(null, '', `?date=${date}&type=${type}`);
                 window.location.reload();
+            });
 
+            $('.date').on('cancel.daterangepicker', function(ev, picker) {
+                $(this).val('');
+
+                let date = $('.date').val();
+                let type = $('.type').val();
+
+                history.pushState(null, '', `?date=${date}&type=${type}`);
+                window.location.reload();
             });
 
             $('.type').on('change', function(){
