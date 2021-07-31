@@ -402,6 +402,6 @@ class PageController extends Controller
             }
         }
 
-        return fail('Transfer account is invalid', null);
+        return fail('Transfer account is not valid', null);
     }
 }
