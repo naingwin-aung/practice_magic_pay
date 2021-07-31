@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Frontend;
+namespace App\Http\Controllers\Api;
 
 use App\Models\User;
 use App\Models\Transaction;
@@ -10,96 +10,90 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use App\Http\Requests\StoreUpdatePassword;
+use App\Http\Resources\ProfileResource;
+use App\Notifications\GeneralNotification;
+use App\Http\Resources\TransactionResource;
+use App\Http\Resources\NotificationResource;
 use Illuminate\Support\Facades\Notification;
 use App\Http\Requests\ConfirmTransferRequest;
-use App\Notifications\GeneralNotification;
+use App\Http\Resources\toAccountVerifyResource;
+use App\Http\Resources\TransactionDetailResource;
+use App\Http\Resources\NotificationDetailResource;
 
 class PageController extends Controller
 {
-    public function index() 
-    {
-        $user = Auth::user();
-        return view('frontend.home', compact('user'));
-    }
-
     public function profile()
     {
-        $user = Auth::user();
-        return view('frontend.profile', compact('user'));
+       $user = Auth::user();
+       $data = new ProfileResource($user); 
+
+       return success('success', $data);
     }
 
-    public function updatePassword()
-    {
-        return view('frontend.update_password');
-    }
-
-    public function updatePasswordStore(StoreUpdatePassword $request)
+    public function transaction(Request $request)
     {
         $user = Auth::user();
+        $transactions = Transaction::with('user', 'source')->where('user_id', $user->id)->orderBy('created_at', 'DESC');
 
-        if(!Hash::check($request->current_password, $user->password)) {
-            return back()->withErrors(['fail' => 'Check Your Current Password!'])->withInput();
+        if($request->date) {
+            $transactions = $transactions->whereDate('created_at', $request->date);
         }
 
-        if($request->new_password !== $request->password_confirmation) {
-            return back()->withErrors(['not-match' => 'Password Confirmation doesn\'t match!'])->withInput();
+        if($request->type) {
+            $transactions = $transactions->where('type', $request->type);
         }
 
-        $user->update([
-            'password' => Hash::make($request->new_password),
-        ]);
-                
-        $title = 'Change Password';
-        $message = 'Your account password is successfully changed.';
-        $sourceable_id = $user->id; 
-        $sourceable_type = User::class; 
-        $web_link = url('profile');
-        $deep_link = [
-            'target' => 'profile',
-            'parameter' => null,
-        ];
+        $transactions = $transactions->paginate(5);
 
-        Notification::send([$user], new GeneralNotification($title, $message, $sourceable_id, $sourceable_type, $web_link, $deep_link));
-
-        return redirect()->route('profile')->with('update-password', 'Successfully Updated Password');
+        return TransactionResource::collection($transactions)->additional(['result' => 1, 'message' => 'success']);
     }
 
-    public function wallet()
+    public function transactionDetail($trx_id)
     {
         $user = Auth::user();
-        return view('frontend.wallet', compact('user'));
+        $transaction = Transaction::with('user', 'source')->where('user_id', $user->id)->where('trx_id', $trx_id)->firstOrFail();
+
+        $data = new TransactionDetailResource($transaction);
+
+        return success('success', $data);
     }
 
-    public function transfer()
+    public function notification()
     {
         $user = Auth::user();
-        return view('frontend.transfer', compact('user'));
+        $notifications = $user->notifications()->paginate(5);
+
+        return NotificationResource::collection($notifications)->additional(['result' => 1, 'message' => 'success']);
     }
 
-    
+    public function notificationDetail($id)
+    {
+        $user = Auth::user();
+        $notification = $user->notifications()->where('id', $id)->firstOrFail();
+        $notification->markAsRead();
+
+        $data = new NotificationDetailResource($notification);
+
+        return success('success', $data);
+    }
+
     public function toAccountVerify(Request $request)
     {
-        $user = User::where('phone', $request->phone)->first();
+        if($request->to_phone) {
+            $user = Auth::user();
+            
+            $to_phone = User::where('phone', $request->to_phone)->first();
+    
+            if($to_phone && $user->phone !== $to_phone->phone) {
+                $data = new toAccountVerifyResource($to_phone);
 
-        if($request->phone == Auth::user()->phone) {
-            return response()->json([
-                'status' => 'fail',
-                'message' => 'Doesn\'t transfer your account!'
-            ]);
+                return success('success', $data);
+            }
+
+            return fail('Transfer phone number is invalid', null);
         }
 
-        if($user) {
-            return response()->json([
-                'status' => 'success',
-                'data' => $user
-            ]);
-        }
-
-        return response()->json([
-            'status' => 'fail',
-            'message' => 'Transfer account is invalid'
-        ]);
+        return fail('Please fill the phone number', null);
     }
 
     public function transferConfirm(ConfirmTransferRequest $request)
@@ -107,13 +101,13 @@ class PageController extends Controller
         $hash_value2 = hash_hmac('sha256', $request->to_phone.$request->amount.$request->description , 'magicpay123!@#');  
 
         if($request->hash_value !== $hash_value2) {
-            return redirect()->route('transfer')->withErrors(['amount' => 'The given data isn\'t be secure!'])->withInput();
+            return fail('The given data isn\'t be secure!', null);
         }
 
         $from_account = Auth::user();
         
         if($from_account->wallet->amount < $request->amount) {
-            return back()->withErrors(['fail' => '​ငွေမလုံလောက်ပါ။'])->withInput();
+            return fail('​ငွေမလုံလောက်ပါ။', null);
         }
 
         $to_account = User::where('phone', $request->to_phone)->first();
@@ -123,25 +117,43 @@ class PageController extends Controller
             $description = $request->description;
             $hash_value = $request->hash_value;
 
-            return view('frontend.transfer_confirm', compact('hash_value','from_account', 'to_account', 'amount', 'description'));
+            return success('success', [
+                'from_name' => $from_account->name, 
+                'from_phone' => $from_account->phone, 
+
+                'to_name' => $to_account->name, 
+                'to_phone' => $to_account->phone, 
+
+                'amount' => $amount,
+                'description' => $description,
+                'hash_value' => $hash_value,
+            ]);
         }
 
-        return back()->withErrors(['fail' => 'Transfer account is invalid'])->withInput();
-
+        return fail('Transfer account is invalid', null);
     }
 
     public function transferComplete(ConfirmTransferRequest $request)
     {
+        if(!$request->password) {
+            return fail('Please Fill your password', null);
+        }
+
+        $user = Auth::user();
+        if(!Hash::check($request->password, $user->password)) {
+            return fail('The password is incorrect.', null);
+        }
+
         $hash_value2 = hash_hmac('sha256', $request->to_phone.$request->amount.$request->description , 'magicpay123!@#');
 
         if($request->hash_value !== $hash_value2) {
-            return redirect()->route('transfer')->withErrors(['amount' => 'The given data isn\'t be secure!'])->withInput();
+            return fail('The given data isn\'t be secure!', null);
         }
 
         $from_account = Auth::user();
 
         if($from_account->wallet->amount < $request->amount) {
-            return back()->withErrors(['fail' => '​ငွေမလုံလောက်ပါ။'])->withInput();
+            return fail('​ငွေမလုံလောက်ပါ။', null);
         }
 
         $to_account = User::where('phone', $request->to_phone)->first();
@@ -151,7 +163,7 @@ class PageController extends Controller
             $description = $request->description;
 
             if(!$from_account->wallet && !$to_account->wallet) {
-                return back()->withErrors(['fail' => 'Something Wrong. The given data is invalid'])->withInput();
+                return fail('Something Wrong. The given data is invalid', null);
             }
 
             DB::beginTransaction();
@@ -216,108 +228,51 @@ class PageController extends Controller
                 Notification::send([$to_account], new GeneralNotification($title, $message, $sourceable_id, $sourceable_type, $web_link, $deep_link));
 
                 DB::commit();
-                return redirect()->route('transaction.detail', $from_account_transaction->trx_id)->with('transfer-success', 'အောင်မြင်ပါသည်။');
+                return success('အောင်မြင်ပါသည်။', [
+                    'trx_id' => $from_account_transaction->trx_id,
+                ]);
             } catch (\Exception $e) {
                 DB::rollback();
-                return back()->withErrors(['fail' => 'Something Wrong.'])->withInput();
+                return fail('Something Wrong.', null);
             }
         }
 
-        return back()->withErrors(['fail' => 'Transfer account is invalid'])->withInput();
-    }
-
-    public function passwordCheck(Request $request)
-    {
-        if(!$request->password) {
-            return response()->json([
-                'status' => 'fail',
-                'message' => 'Please fill your password!'
-            ]);
-        }
-
-        $user = Auth::user();
-        if(Hash::check($request->password, $user->password)) {
-            return response()->json([
-                'status' => 'success',
-                'message' => 'The password is correct.'
-            ]);
-        }
-
-        return response()->json([
-            'status' => 'fail',
-            'message' => 'The password is incorrect.'
-        ]);
-    }
-
-    public function transaction(Request $request)
-    {
-        $user = Auth::user();
-        $transactions = Transaction::with('user', 'source')->where('user_id', $user->id)->orderBy('created_at', 'DESC');
-
-        if($request->type) {
-            $transactions = $transactions->where('type', $request->type);
-        }
-
-        if($request->date) {
-            $transactions = $transactions->whereDate('created_at', $request->date);
-        }
-
-        $transactions = $transactions->paginate(5);
-        return view('frontend.transaction', compact('transactions'));
-    }
-
-    public function transactionDetail($trx_id)
-    {
-       $user = Auth::user();
-       $transaction = Transaction::with('user', 'source')->where('user_id', $user->id)->where('trx_id', $trx_id)->first();
-       return view('frontend.transaction_detail', compact('transaction'));
-    }
-
-    public function transferHash(Request $request)
-    {
-        $hash_value = hash_hmac('sha256', $request->to_phone.$request->amount.$request->description , 'magicpay123!@#'); 
-
-        return response()->json([
-            'status' => 'success',
-            'data' => $hash_value
-        ]);
-    }
-
-    public function receiveQR()
-    {
-        $user = Auth::user();
-        return view('frontend.receiveqr', compact('user'));
-    }
-
-    public function scanAndPay()
-    {
-        return view('frontend.scan_and_pay');
+        return fail('Transfer account is invalid', null);
     }
 
     public function scanAndPayForm(Request $request)
     {
-        $user = Auth::user();
-        $to_account = User::where('phone',$request->to_phone)->first();
-        
-        if($to_account && $to_account->phone != $user->phone) {
-            return view('frontend.scan_and_pay_form', compact('user', 'to_account'));
+        if($request->to_phone) {
+            $user = Auth::user();
+            $to_account = User::where('phone',$request->to_phone)->first();
+            
+            if($to_account && $to_account->phone != $user->phone) {
+                return success('Success', [
+                    'from_name' => $user->name,
+                    'from_phone' => $user->phone,
+                    'to_name' => $to_account->name,
+                    'to_phone' => $to_account->phone,
+                ]);
+            }
+    
+            return fail('QR code is invalid', null);
         }
 
-        return back()->withErrors(['fail' => 'QR code is invalid'])->withInput();
+        return fail('Phone number is invalid', null);
     }
 
     public function scanAndPayConfirm(ConfirmTransferRequest $request)
-    { 
+    {
         $hash_value2 = hash_hmac('sha256', $request->to_phone.$request->amount.$request->description , 'magicpay123!@#');
         
         if($request->hash_value !== $hash_value2) {
-           return redirect()->route('scan&payform')->withErrors(['fail' => 'The given data is no\'t secure!']);
+            return fail('The given data is no\'t secure!', null);
         }
 
         $from_account = Auth::user();
 
         if($from_account->wallet->amount < $request->amount) {
-            return back()->withErrors(['fail' => '​ငွေမလုံလောက်ပါ။'])->withInput();
+            return fail('​ငွေမလုံလောက်ပါ။', null);
         }
 
         $to_account = User::where('phone', $request->to_phone)->first();
@@ -327,24 +282,43 @@ class PageController extends Controller
             $description = $request->description;
             $hash_value = $request->hash_value;
 
-            return view('frontend.scan_and_pay_confirm', compact('hash_value','from_account', 'to_account', 'amount', 'description'));
+            return success('success', [
+                'from_name' => $from_account->name, 
+                'from_phone' => $from_account->phone, 
+
+                'to_name' => $to_account->name, 
+                'to_phone' => $to_account->phone, 
+
+                'amount' => $amount,
+                'description' => $description,
+                'hash_value' => $hash_value,
+            ]);
         }
 
-        return back()->withErrors(['fail' => 'Transfer account is invalid'])->withInput();
+        return fail('Transfer account is invalid', null);
     }
 
     public function scanAndPayComplete(ConfirmTransferRequest $request)
     {
+        if(!$request->password) {
+            return fail('Please Fill your password', null);
+        }
+
+        $user = Auth::user();
+        if(!Hash::check($request->password, $user->password)) {
+            return fail('The password is incorrect.', null);
+        }
+
         $hash_value2 = hash_hmac('sha256', $request->to_phone.$request->amount.$request->description , 'magicpay123!@#');
 
         if($request->hash_value !== $hash_value2) {
-            return redirect()->route('transfer')->withErrors(['amount' => 'The given data isn\'t be secure!'])->withInput();
+            return fail('The given data isn\'t be secure!', null);
         }
 
         $from_account = Auth::user();
 
         if($from_account->wallet->amount < $request->amount) {
-            return back()->withErrors(['fail' => '​ငွေမလုံလောက်ပါ။'])->withInput();
+            return fail('​ငွေမလုံလောက်ပါ။', null);
         }
 
         $to_account = User::where('phone', $request->to_phone)->first();
@@ -353,8 +327,8 @@ class PageController extends Controller
             $amount = $request->amount;
             $description = $request->description;
 
-            if(!$from_account->wallet || !$to_account->wallet) {
-                return back()->withErrors(['fail' => 'Something Wrong. The given data is invalid'])->withInput();
+            if(!$from_account->wallet && !$to_account->wallet) {
+                return fail('Something Wrong. The given data is invalid', null);
             }
 
             DB::beginTransaction();
@@ -400,7 +374,7 @@ class PageController extends Controller
                         'trx_id' => $from_account_transaction->trx_id,
                     ]
                 ];
-        
+
                 Notification::send([$from_account], new GeneralNotification($title, $message, $sourceable_id, $sourceable_type, $web_link, $deep_link));
 
                 //To Noti
@@ -419,13 +393,15 @@ class PageController extends Controller
                 Notification::send([$to_account], new GeneralNotification($title, $message, $sourceable_id, $sourceable_type, $web_link, $deep_link));
 
                 DB::commit();
-                return redirect()->route('transaction.detail', $from_account_transaction->trx_id)->with('transfer-success', 'အောင်မြင်ပါသည်။');
+                return success('အောင်မြင်ပါသည်။', [
+                    'trx_id' => $from_account_transaction->trx_id,
+                ]);
             } catch (\Exception $e) {
                 DB::rollback();
-                return back()->withErrors(['fail' => 'Something Wrong.'])->withInput();
+                return fail('Something Wrong.', null);
             }
         }
 
-        return back()->withErrors(['fail' => 'Transfer account is invalid'])->withInput();
+        return fail('Transfer account is invalid', null);
     }
 }

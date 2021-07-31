@@ -2,27 +2,31 @@
 @section('title', "Notification")
 
 @section('content')
-    <div class="notification">
-        <h6 class="ml-2 font-weight-bold">Notification</h6>
-        <div class="infinite-scroll">
-            @foreach ($notifications as $notification)
-                <a href="{{route('notification.detail', $notification->id)}}">
-                    <div class="card shadow mb-2">
-                        <div class="card-body py-3">
-                            <h6><i class="fas fa-bell @if(is_null($notification->read_at)) text-danger @endif"></i> {{Illuminate\Support\Str::limit($notification->data['title'], 40)}}</h6>
-                            <p class="mb-1">{{Illuminate\Support\Str::limit($notification->data['message'], 100)}}</p>
-                            <small class="text-muted mb-1">
-                                {{$notification->created_at->diffForHumans()}} -
-                                {{$notification->created_at->toFormattedDateString()}} -
-                                {{$notification->created_at->format('h:i:s A')}}
-                            </small>
+    @if ($notifications->count())
+        <div class="notification mb-5">
+            <h6 class="ml-2 font-weight-bold">Notification</h6>
+            <div class="infinite-scroll">
+                @foreach ($notifications as $notification)
+                    <a href="{{route('notification.detail', $notification->id)}}">
+                        <div class="card shadow mb-2">
+                            <div class="card-body py-3">
+                                <h6><i class="fas fa-bell @if(is_null($notification->read_at)) text-danger @endif"></i> {{Illuminate\Support\Str::limit($notification->data['title'], 40)}}</h6>
+                                <p class="mb-1">{{Illuminate\Support\Str::limit($notification->data['message'], 100)}}</p>
+                                <small class="text-muted mb-1">
+                                    {{$notification->created_at->diffForHumans()}} -
+                                    {{$notification->created_at->toFormattedDateString()}} -
+                                    {{$notification->created_at->format('h:i:s A')}}
+                                </small>
+                            </div>
                         </div>
-                    </div>
-                </a>
-            @endforeach
-            {{$notifications->links()}}  
+                    </a>
+                @endforeach
+                {{$notifications->links()}}  
+            </div>
         </div>
-    </div>
+    @else 
+        <h5 class="text-center text-muted">No Notifications</h5>
+    @endif
 @endsection
 @section('scripts')
     <script>

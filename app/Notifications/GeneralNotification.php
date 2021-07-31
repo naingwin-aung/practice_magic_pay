@@ -18,13 +18,14 @@ class GeneralNotification extends Notification
      *
      * @return void
      */
-    public function __construct($title, $message, $sourceable_id, $sourceable_type, $web_link)
+    public function __construct($title, $message, $sourceable_id, $sourceable_type, $web_link, $deep_link)
     {
         $this->title = $title;
         $this->message = $message;
         $this->sourceable_id = $sourceable_id;
         $this->sourceable_type = $sourceable_type;
         $this->web_link = $web_link;
+        $this->deep_link = $deep_link;
     }
 
     /**
@@ -51,7 +52,8 @@ class GeneralNotification extends Notification
             'message' => $this->message,
             'sourceable_id' => $this->sourceable_id,
             'sourceable_type' => $this->sourceable_type,
-            'web_link' => $this->web_link
+            'web_link' => $this->web_link,
+            'deep_link' => $this->deep_link
         ];
     }
 }

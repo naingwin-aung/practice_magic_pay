@@ -35,7 +35,7 @@
                 </a>
                 <hr>
     
-                <a href="{{ route('logout') }}" class="logout">
+                <a href="#" class="logout">
                     <div class="d-flex justify-content-between">
                         <span>Logout</span>
                         
