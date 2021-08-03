@@ -22,4 +22,10 @@ Route::prefix('/admin')->name('admin.')->middleware(['auth:admin'])->group(funct
 
     Route::get('wallet', [WalletController::class, 'index'])->name('wallet.index');
     Route::get('wallet/datatable/ssd', [WalletController::class, 'serverSideData']);
+
+    Route::get('wallet/add/amount', [WalletController::class, 'addAmount'])->name('wallet.add');
+    Route::post('wallet/add/amount', [WalletController::class, 'addAmountStore'])->name('wallet.add.store');
+
+    Route::get('wallet/add/reduce', [WalletController::class, 'reduceAmount'])->name('wallet.reduce');
+    Route::post('wallet/add/reduce', [WalletController::class, 'reduceAmountStore'])->name('wallet.reduce.store');
 });

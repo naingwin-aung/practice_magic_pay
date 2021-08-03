@@ -13,6 +13,12 @@
             </div>
         </div>
     </div>
+
+    <div class="pt-3">
+        <a href="{{route("admin.wallet.add")}}" class="btn btn-success"><i class="fas fa-plus-circle"></i> Add Amount</a>
+        <a href="{{route("admin.wallet.reduce")}}" class="btn btn-danger"><i class="fas fa-minus-circle"></i> Reduce Amount</a>
+    </div>
+
     <div class="content__width">
         <div class="content py-3 table__width">
             <div class="card">
